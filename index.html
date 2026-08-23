@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ducking Around - A social mobile game where you create and customize duck avatars, play mini-games, and collect coins.">
+    <meta name="theme-color" content="#4B8BFF">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ducking Around">
+    
+    <title>🦆 Ducking Around - Alpha</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%234B8BFF' width='192' height='192'/><text x='96' y='140' font-size='100' text-anchor='middle' dominant-baseline='middle'>🦆</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%234B8BFF' width='180' height='180' rx='40'/><text x='90' y='130' font-size='90' text-anchor='middle' dominant-baseline='middle'>🦆</text></svg>">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #E0F6FF 100%);
+            min-height: 100vh;
+            color: #333;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #root {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .app-container {
+            width: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(90deg, #4B8BFF 0%, #87CEEB 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header-stats {
+            display: flex;
+            justify-content: space-around;
+            font-size: 14px;
+            gap: 10px;
+        }
+
+        .nav-bar {
+            display: flex;
+            gap: 5px;
+            padding: 10px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: #f0f0f0;
+            color: #333;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-btn.active {
+            background: #4B8BFF;
+            color: white;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            padding-bottom: 60px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .player-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .duck-avatar {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+        }
+
+        .player-info {
+            flex: 1;
+        }
+
+        .player-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .player-coins {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .btn-wave {
+            padding: 6px 12px;
+            background: #FFD700;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            transition: all 0.2s;
+        }
+
+        .btn-wave:active {
+            transform: scale(0.95);
+        }
+
+        .game-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .game-card {
+            background: linear-gradient(135deg, #FF6B9D 0%, #FFA07A 100%);
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .game-card:active {
+            transform: scale(0.97);
+        }
+
+        .game-card.race {
+            background: linear-gradient(135deg, #4B8BFF 0%, #87CEEB 100%);
+        }
+
+        .game-card.catch {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        }
+
+        .game-emoji {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .game-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .game-reward {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .item-card {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .item-emoji {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .item-name {
+            font-weight: bold;
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .item-price {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .btn-buy {
+            width: 100%;
+            padding: 6px;
+            background: #4B8BFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-buy:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-buy:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .welcome-screen {
+            display: flex !important;
+            flex-direction: column;
+            height: 100%;
+            background: linear-gradient(135deg, #87CEEB 0%, #E0F6FF 100%);
+            padding: 20px;
+            justify-content: center;
+            text-align: center;
+            min-height: 100vh;
+        }
+
+        .welcome-emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .welcome-desc {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: #4B8BFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        .creation-screen {
+            display: flex !important;
+            flex-direction: column;
+            height: 100%;
+            background: white;
+            padding: 20px;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .creation-step {
+            display: none;
+        }
+
+        .creation-step.active {
+            display: block;
+        }
+
+        .input-field {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .color-btn {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .color-btn.selected {
+            border: 3px solid #333;
+        }
+
+        .pattern-grid {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .pattern-btn {
+            padding: 15px;
+            background: #f0f0f0;
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: capitalize;
+            transition: all 0.2s;
+        }
+
+        .pattern-btn.selected {
+            background: #4B8BFF;
+            color: white;
+        }
+
+        .btn-success {
+            width: 100%;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-success:active {
+            transform: scale(0.97);
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 12px;
+            background: #4B8BFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .minigame-screen {
+            display: flex !important;
+            flex-direction: column;
+            height: 100%;
+            background: linear-gradient(135deg, #87CEEB 0%, #E0F6FF 100%);
+            padding: 20px;
+            justify-content: center;
+            text-align: center;
+            min-height: 100vh;
+        }
+
+        .minigame-emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .minigame-title {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .spinning-duck {
+            font-size: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .won-title {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .won-coins {
+            font-size: 48px;
+            color: #FFD700;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .profile-section {
+            text-align: center;
+        }
+
+        .profile-duck {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+        }
+
+        .profile-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .profile-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .stat-box {
+            background: #f0f0f0;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .stat-label {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .accessories-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .accessories-grid {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .accessory-emoji {
+            font-size: 20px;
+        }
+
+        .empty-message {
+            color: #999;
+            font-size: 13px;
+        }
+
+        .lobby-desc {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .installation-banner {
+            background: #FFD700;
+            color: #333;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 480px) {
+            #root {
+                max-width: 100%;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+
+        @media (display-mode: standalone) {
+            body {
+                padding-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="app-container">
+            <!-- Welcome Screen -->
+            <div id="welcomeScreen" class="welcome-screen screen active">
+                <div class="welcome-emoji">🦆</div>
+                <h1 class="welcome-title">Ducking Around</h1>
+                <p class="welcome-desc">Make friends, play games, and collect coins!</p>
+                <button class="btn-primary" onclick="goToCreation()">Create Your Duck</button>
+            </div>
+
+            <!-- Character Creation Screen -->
+            <div id="creationScreen" class="creation-screen screen" style="display: none;">
+                <div class="creation-step active" id="step1">
+                    <h2>What's your duck's name?</h2>
+                    <input type="text" class="input-field" id="duckName" placeholder="Enter duck name...">
+                    <button class="btn-secondary" onclick="nextStep(2)">Next</button>
+                </div>
+
+                <div class="creation-step" id="step2" style="display: none;">
+                    <h2>Pick a color</h2>
+                    <div class="color-grid">
+                        <button class="color-btn" style="background-color: #FFD700; color: #333;" onclick="selectColor('#FFD700', this)">Gold</button>
+                        <button class="color-btn" style="background-color: #87CEEB; color: white;" onclick="selectColor('#87CEEB', this)">Blue</button>
+                        <button class="color-btn" style="background-color: #FF6B9D; color: white;" onclick="selectColor('#FF6B9D', this)">Pink</button>
+                        <button class="color-btn" style="background-color: #98D98E; color: #333;" onclick="selectColor('#98D98E', this)">Green</button>
+                        <button class="color-btn" style="background-color: #DA70D6; color: white;" onclick="selectColor('#DA70D6', this)">Purple</button>
+                        <button class="color-btn" style="background-color: #FFA500; color: #333;" onclick="selectColor('#FFA500', this)">Orange</button>
+                    </div>
+                    <button class="btn-secondary" onclick="nextStep(3)">Next</button>
+                </div>
+
+                <div class="creation-step" id="step3" style="display: none;">
+                    <h2>Pick a pattern</h2>
+                    <div class="pattern-grid">
+                        <button class="pattern-btn selected" onclick="selectPattern('solid', this)">🎨 Solid</button>
+                        <button class="pattern-btn" onclick="selectPattern('dots', this)">🎨 Dots</button>
+                        <button class="pattern-btn" onclick="selectPattern('stripes', this)">🎨 Stripes</button>
+                    </div>
+                    <button class="btn-success" onclick="createDuck()">Create Duck! 🦆</button>
+                </div>
+            </div>
+
+            <!-- Main App (after creation) -->
+            <div id="mainApp" class="app-container" style="display: none;">
+                <div class="header">
+                    <h1>🦆 Ducking Around</h1>
+                    <div class="header-stats">
+                        <div>💰 <span id="headerCoins">0</span></div>
+                        <div>🎮 <span id="headerGames">0</span></div>
+                        <div>⭐ <span id="headerEarned">0</span></div>
+                    </div>
+                </div>
+
+                <div class="nav-bar">
+                    <button class="nav-btn active" onclick="switchScreen('lobby')">🏞️ Lobby</button>
+                    <button class="nav-btn" onclick="switchScreen('games')">🎮 Games</button>
+                    <button class="nav-btn" onclick="switchScreen('shop')">🛍️ Shop</button>
+                    <button class="nav-btn" onclick="switchScreen('profile')">👤 Me</button>
+                </div>
+
+                <div class="content">
+                    <!-- Lobby Screen -->
+                    <div id="lobbyScreen" class="screen active">
+                        <h2>Welcome to Duckville! 🌊</h2>
+                        <p class="lobby-desc">Meet other ducks in the pond!</p>
+                        <div id="playersList" class="game-grid"></div>
+                    </div>
+
+                    <!-- Games Screen -->
+                    <div id="gamesScreen" class="screen" style="display: none;">
+                        <h2>Mini Games</h2>
+                        <div class="game-grid">
+                            <div class="game-card" onclick="playGame('flip')">
+                                <div class="game-emoji">🎲</div>
+                                <div class="game-name">Coin Flip</div>
+                                <div class="game-reward">Win 25-50 coins</div>
+                            </div>
+                            <div class="game-card race" onclick="playGame('race')">
+                                <div class="game-emoji">🏁</div>
+                                <div class="game-name">Duck Race</div>
+                                <div class="game-reward">Win 30-60 coins</div>
+                            </div>
+                            <div class="game-card catch" onclick="playGame('catch')">
+                                <div class="game-emoji">🌽</div>
+                                <div class="game-name">Corn Catch</div>
+                                <div class="game-reward">Win 40-80 coins</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shop Screen -->
+                    <div id="shopScreen" class="screen" style="display: none;">
+                        <h2>Duck Emporium</h2>
+                        <div id="shopGrid" class="shop-grid"></div>
+                    </div>
+
+                    <!-- Profile Screen -->
+                    <div id="profileScreen" class="screen" style="display: none;">
+                        <div class="profile-section">
+                            <h2>Your Duck</h2>
+                            <div id="profileDuckAvatar" class="profile-duck"></div>
+                            <div class="profile-card">
+                                <div class="profile-name" id="profileName">Duck</div>
+                                <div class="stat-grid">
+                                    <div class="stat-box">
+                                        <div class="stat-label">Games Played</div>
+                                        <div class="stat-value" id="profileGames">0</div>
+                                    </div>
+                                    <div class="stat-box">
+                                        <div class="stat-label">Total Earned</div>
+                                        <div class="stat-value" id="profileEarned">0</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="profile-card">
+                                <div class="accessories-label">Accessories (<span id="accessoryCount">0</span>)</div>
+                                <div id="accessoriesGrid" class="accessories-grid"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mini Game Screen -->
+                    <div id="minigameScreen" class="screen minigame-screen" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; max-width: none; width: 100%; height: 100vh; padding: 20px; z-index: 100;">
+                        <div id="gameContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            screen: 'welcome',
+            duck: null,
+            coins: 0,
+            inventory: [],
+            stats: { gamesPlayed: 0, totalEarned: 0 },
+            currentCreationStep: 1,
+            selectedColor: '#FFD700',
+            selectedPattern: 'solid'
+        };
+
+        const players = [
+            { id: 1, name: 'Quackers', color: '#FFD700', pattern: 'dots', coins: 250 },
+            { id: 2, name: 'Waddles', color: '#87CEEB', pattern: 'stripes', coins: 180 },
+            { id: 3, name: 'Splashy', color: '#FF6B9D', pattern: 'solid', coins: 320 }
+        ];
+
+        const shopItems = [
+            { id: 1, name: 'Top Hat', price: 100, category: 'hat', emoji: '🎩' },
+            { id: 2, name: 'Sunglasses', price: 80, category: 'accessories', emoji: '😎' },
+            { id: 3, name: 'Bow Tie', price: 60, category: 'accessories', emoji: '🎀' },
+            { id: 4, name: 'Party Hat', price: 150, category: 'hat', emoji: '🎉' },
+            { id: 5, name: 'Scarf', price: 90, category: 'accessories', emoji: '🧣' },
+            { id: 6, name: 'Monocle', price: 120, category: 'accessories', emoji: '🧐' }
+        ];
+
+        // Initialize PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js').catch(err => console.log('SW registration failed:', err));
+        }
+
+        // Show PWA install banner after 5 seconds
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const banner = document.createElement('div');
+                banner.className = 'installation-banner';
+                banner.textContent = '📱 Tip: Add this game to your home screen for offline play!';
+                banner.style.position = 'fixed';
+                banner.style.top = '0';
+                banner.style.left = '0';
+                banner.style.right = '0';
+                banner.style.margin = '10px';
+                banner.style.zIndex = '1000';
+                banner.onclick = () => banner.remove();
+                document.body.appendChild(banner);
+            }, 5000);
+        });
+
+        function goToCreation() {
+            document.getElementById('welcomeScreen').classList.remove('active');
+            document.getElementById('creationScreen').style.display = 'flex';
+            gameState.screen = 'creation';
+        }
+
+        function nextStep(step) {
+            const name = document.getElementById('duckName').value.trim();
+            if (step === 2 && !name) {
+                alert('Please enter a duck name!');
+                return;
+            }
+            if (name) {
+                gameState.duckName = name;
+            }
+            
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById('step' + i).classList.remove('active');
+            }
+            document.getElementById('step' + step).classList.add('active');
+            gameState.currentCreationStep = step;
+        }
+
+        function selectColor(color, btn) {
+            gameState.selectedColor = color;
+            document.querySelectorAll('#step2 .color-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+
+        function selectPattern(pattern, btn) {
+            gameState.selectedPattern = pattern;
+            document.querySelectorAll('#step3 .pattern-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+
+        function createDuck() {
+            if (!gameState.duckName) {
+                alert('Please enter a duck name!');
+                return;
+            }
+            
+            gameState.duck = {
+                name: gameState.duckName,
+                color: gameState.selectedColor,
+                pattern: gameState.selectedPattern,
+                accessories: []
+            };
+            
+            gameState.coins = 100;
+            gameState.screen = 'lobby';
+            
+            document.getElementById('creationScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'flex';
+            
+            renderLobby();
+            renderShop();
+            updateUI();
+        }
+
+        function drawDuckAvatar(duck, size = 50) {
+            const scale = size / 100;
+            return `
+                <svg viewBox="0 0 100 100" style="width: ${size}px; height: ${size}px;">
+                    <ellipse cx="50" cy="55" rx="25" ry="35" fill="${duck.color}" />
+                    <circle cx="50" cy="30" r="20" fill="${duck.color}" />
+                    <circle cx="45" cy="25" r="3" fill="black" />
+                    <path d="M 58 28 L 68 28 L 62 32 Z" fill="#FFA500" />
+                    ${duck.pattern === 'dots' ? `
+                        <circle cx="40" cy="50" r="2" fill="rgba(0,0,0,0.2)" />
+                        <circle cx="55" cy="55" r="2" fill="rgba(0,0,0,0.2)" />
+                        <circle cx="50" cy="65" r="2" fill="rgba(0,0,0,0.2)" />
+                    ` : ''}
+                    ${duck.pattern === 'stripes' ? `
+                        <line x1="35" y1="45" x2="65" y2="45" stroke="rgba(0,0,0,0.1)" stroke-width="2" />
+                        <line x1="35" y1="60" x2="65" y2="60" stroke="rgba(0,0,0,0.1)" stroke-width="2" />
+                    ` : ''}
+                    ${duck.accessories.map((acc, i) => `<text x="50" y="${15 + i * 8}" text-anchor="middle" font-size="12">${acc.emoji}</text>`).join('')}
+                </svg>
+            `;
+        }
+
+        function renderLobby() {
+            const list = document.getElementById('playersList');
+            list.innerHTML = players.map(player => `
+                <div class="card player-card">
+                    <div class="duck-avatar">${drawDuckAvatar({ ...player, accessories: [] }, 50)}</div>
+                    <div class="player-info">
+                        <div class="player-name">${player.name}</div>
+                        <div class="player-coins">💰 ${player.coins} coins</div>
+                    </div>
+                    <button class="btn-wave" onclick="alert('Wave at ${player.name}! 👋')">Wave 👋</button>
+                </div>
+            `).join('');
+        }
+
+        function renderShop() {
+            const grid = document.getElementById('shopGrid');
+            grid.innerHTML = shopItems.map(item => `
+                <div class="item-card">
+                    <div class="item-emoji">${item.emoji}</div>
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-price">💰 ${item.price}</div>
+                    <button class="btn-buy" ${gameState.coins < item.price ? 'disabled' : ''} onclick="buyItem(${item.id})">Buy</button>
+                </div>
+            `).join('');
+        }
+
+        function buyItem(itemId) {
+            const item = shopItems.find(i => i.id === itemId);
+            if (!item) return;
+            
+            if (gameState.coins >= item.price) {
+                gameState.coins -= item.price;
+                gameState.inventory.push(item);
+                gameState.duck.accessories.push(item);
+                updateUI();
+                renderShop();
+                alert(`You bought ${item.name}!`);
+            }
+        }
+
+        function playGame(gameType) {
+            gameState.currentGame = gameType;
+            const gameContent = document.getElementById('gameContent');
+            const gameEmojis = { flip: '🎲', race: '🏁', catch: '🌽' };
+            const gameNames = { flip: 'Flipping coin', race: 'Racing', catch: 'Catching corn' };
+            
+            gameContent.innerHTML = `
+                <div class="minigame-emoji">${gameEmojis[gameType]}</div>
+                <h2 class="minigame-title">${gameNames[gameType]}...</h2>
+                <div class="spinning-duck">🦆</div>
+            `;
+            
+            document.getElementById('minigameScreen').style.display = 'flex';
+            
+            setTimeout(() => {
+                const rewards = {
+                    flip: Math.floor(Math.random() * 26 + 25),
+                    race: Math.floor(Math.random() * 31 + 30),
+                    catch: Math.floor(Math.random() * 41 + 40)
+                };
+                
+                const earned = rewards[gameType];
+                gameState.coins += earned;
+                gameState.stats.totalEarned += earned;
+                gameState.stats.gamesPlayed += 1;
+                
+                gameContent.innerHTML = `
+                    <div class="minigame-emoji">🎉</div>
+                    <h2 class="won-title">You won!</h2>
+                    <div class="won-coins">+${earned} 💰</div>
+                    <button class="btn-primary" onclick="endGame()">Back to Games</button>
+                `;
+                
+                updateUI();
+            }, 2000);
+        }
+
+        function endGame() {
+            document.getElementById('minigameScreen').style.display = 'none';
+            switchScreen('games');
+        }
+
+        function switchScreen(screenName) {
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Hide all screens
+            document.querySelectorAll('#mainApp .screen').forEach(s => s.style.display = 'none');
+            
+            // Show selected screen
+            const screenMap = {
+                lobby: 'lobbyScreen',
+                games: 'gamesScreen',
+                shop: 'shopScreen',
+                profile: 'profileScreen'
+            };
+            
+            const screen = document.getElementById(screenMap[screenName]);
+            if (screen) screen.style.display = 'block';
+            
+            if (screenName === 'profile') {
+                updateProfile();
+            }
+        }
+
+        function updateProfile() {
+            document.getElementById('profileName').textContent = gameState.duck.name;
+            document.getElementById('profileDuckAvatar').innerHTML = drawDuckAvatar(gameState.duck, 120);
+            document.getElementById('profileGames').textContent = gameState.stats.gamesPlayed;
+            document.getElementById('profileEarned').textContent = gameState.stats.totalEarned;
+            document.getElementById('accessoryCount').textContent = gameState.inventory.length;
+            
+            const grid = document.getElementById('accessoriesGrid');
+            if (gameState.inventory.length > 0) {
+                grid.innerHTML = gameState.inventory.map(item => `<span class="accessory-emoji">${item.emoji}</span>`).join('');
+            } else {
+                grid.innerHTML = '<div class="empty-message">Visit the shop to get accessories!</div>';
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('headerCoins').textContent = gameState.coins;
+            document.getElementById('headerGames').textContent = gameState.stats.gamesPlayed;
+            document.getElementById('headerEarned').textContent = gameState.stats.totalEarned;
+            renderShop();
+        }
+
+        // Save game state to localStorage
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('duckingAroundState', JSON.stringify(gameState));
+        });
+
+        // Load game state from localStorage
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('duckingAroundState');
+            if (saved) {
+                try {
+                    const state = JSON.parse(saved);
+                    if (state.duck) {
+                        gameState = state;
+                        document.getElementById('welcomeScreen').classList.remove('active');
+                        document.getElementById('mainApp').style.display = 'flex';
+                        renderLobby();
+                        renderShop();
+                        updateUI();
+                    }
+                } catch (e) {
+                    console.log('Failed to load saved game:', e);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
