@@ -1,6 +1,6 @@
 # 🦆 Ducking Around - Alpha PWA
 
-A fun, social mobile game inspired by Club Penguin. Create and customize duck avatars, play mini-games, collect coins, and interact with other players!
+A fun, social mobile game and metaverse homage to Club Penguin! Create and customize duck avatars, play mini-games, collect coins, and interact with other players!
 
 ## 🚀 Quick Start
 
