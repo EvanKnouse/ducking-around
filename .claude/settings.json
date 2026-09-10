@@ -1,7 +1,8 @@
 {
   "enabledPlugins": {
     "mattpocock-skills@mattpocock": true,
-    "ecc@ecc": true
+    "ecc@ecc": true,
+    "caveman@caveman": true
   },
   "extraKnownMarketplaces": {
     "mattpocock": {
@@ -14,6 +15,12 @@
       "source": {
         "source": "git",
         "url": "https://github.com/affaan-m/ECC.git"
+      }
+    },
+    "caveman": {
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
       }
     }
   }
