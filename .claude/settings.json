@@ -5,6 +5,10 @@
     "caveman@caveman": true,
     "ponytail@ponytail": true
   },
+  "statusLine": {
+    "type": "command",
+    "command": "bash \"/root/.claude/plugins/cache/ponytail/ponytail/4.9.0/hooks/ponytail-statusline.sh\""
+  },
   "extraKnownMarketplaces": {
     "mattpocock": {
       "source": {
