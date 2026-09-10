@@ -7,7 +7,16 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash \"/root/.claude/plugins/cache/ponytail/ponytail/4.9.0/hooks/ponytail-statusline.sh\""
+    "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/statusline.sh\""
+  },
+  "env": {
+    "ECC_DISABLED_HOOKS": "pre:bash:gateguard-fact-force,pre:edit-write:gateguard-fact-force"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(claude plugin *)"
+    ]
   },
   "extraKnownMarketplaces": {
     "mattpocock": {
