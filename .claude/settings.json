@@ -2,7 +2,8 @@
   "enabledPlugins": {
     "mattpocock-skills@mattpocock": true,
     "ecc@ecc": true,
-    "caveman@caveman": true
+    "caveman@caveman": true,
+    "ponytail@ponytail": true
   },
   "extraKnownMarketplaces": {
     "mattpocock": {
